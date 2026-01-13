@@ -6,4 +6,5 @@ Masters and Sons IMS
 - [Tailwind CSS](https://tailwindcss.com)
 - [tRPC](https://trpc.io)
 
-[logo]: https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 2"
+[logo]: https://github.com/niteshc132/masterspack/blob/main/public/dispatch.png "Dispatch Screen"
+
