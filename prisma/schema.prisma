@@ -1,0 +1,481 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider     = "mysql"
+    url          = env("DATABASE_URL")
+    relationMode = "prisma"
+}
+
+enum Role {
+    ADMIN
+    PACKOUT
+    DISPATCH
+    GUEST
+}
+
+enum SalesOrderStatus {
+    NEW
+    PLACED
+    PARTIALLY_DISPATCHED
+    FULLY_DISPATCHED
+    PARTIALLY_INVOICED
+    INVOICED
+    DELETED
+}
+
+enum UnleashedStatus {
+    PARKED
+    COMPLETED
+    DELETED
+}
+
+model userRoles {
+    clerkId String @unique
+    role    Role
+}
+
+model Product {
+    id String @id @default(cuid())
+
+    imageURL String? @default("")
+
+    productID   String  @unique
+    productDesc String?
+    productCode String?
+    uom         String?
+    category    String?
+
+    MGcode      String?
+    TGcode      String?
+    accountCode String?
+
+    uploadedBy String?
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    @@index([id])
+    @@index([productID])
+}
+
+model Bin {
+    id    String  @id @default(cuid())
+    name  String?
+    rawId String?
+
+    binId Int? @unique
+
+    batchName     String?
+    batchId       String?
+    batchLocation String?
+    customBatch   String?
+
+    totalBinsUsed   Float    @default(0)
+    count           Int      @default(0)
+    staffCount      Int
+    timeStart       DateTime
+    timeFinish      DateTime
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+    unleashedStatus String?
+    unleashed       String?
+    unleashedId     String?
+
+    unleashedCreatedOn  String?
+    unleashedCreatedBy  String?
+    unleashedModifiedOn String?
+    unleashedModifiedBy String?
+
+    BinFinishedGoodAssociation BinFinishedGoodAssociation[]
+    BinBatchAssociation        BinBatchAssociation[]
+
+    @@index([id])
+}
+
+model BinBatchAssociation {
+    id            Int    @id @default(autoincrement())
+    batchId       String
+    batchName     String
+    batchLocation String
+    quantity      Float? @default(0)
+
+    bin   Bin    @relation(fields: [binId], references: [id])
+    binId String
+
+    @@index([id])
+}
+
+model BinFinishedGoodAssociation {
+    id String @id @default(cuid())
+
+    binId String
+    bin   Bin    @relation(fields: [binId], references: [id])
+
+    finishedGoodID String
+    FinishedGood   FinishedGood @relation(fields: [finishedGoodID], references: [id])
+
+    finishedGoodProductID String
+    comment               String?
+
+    quantity  Float
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([binId])
+    @@index([finishedGoodID])
+}
+
+model Bom {
+    id String @id @default(cuid())
+
+    rawId       String
+    productCode String
+    name        String?
+    quantity    Float
+
+    finishedGoods FinishedGood[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([id])
+}
+
+model FinishedGood {
+    id String @id @default(cuid())
+
+    bom         Bom    @relation(fields: [bomId], references: [id])
+    bomId       String
+    productId   String
+    productCode String
+    quantity    Float
+    order       Int    @default(1)
+
+    consumedProducts ConsumedProduct[]
+
+    createdAt                  DateTime                     @default(now())
+    updatedAt                  DateTime                     @updatedAt
+    BinFinishedGoodAssociation BinFinishedGoodAssociation[]
+
+    @@index([id])
+    @@index([bomId])
+}
+
+model ConsumedProduct {
+    id String @id @default(cuid())
+
+    finishedGoodId String?
+    finishedGood   FinishedGood? @relation(fields: [finishedGoodId], references: [id])
+
+    productId   String
+    productCode String
+
+    quantity Float
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([id])
+    @@index([finishedGoodId])
+}
+
+model Fulfilments {
+    ProductID         String
+    Name              String
+    SKU               String
+    Customer          String?
+    FulFilmentStatus  String?
+    SaleOrderDate     String?
+    SaleID            String?
+    FulfillmentNumber Int?
+
+    Quantity          Int
+    SaleOrderQuantity Int?   @default(0)
+    SaleOrderNumber   String
+
+    @@id([SaleOrderNumber, ProductID])
+    @@index([SaleOrderNumber])
+}
+
+model UnInvoicedFulfilments {
+    FulfillmentNumber  Int
+    ProductID          String
+    Name               String
+    Customer           String?
+    FulFilmentStatus   String?
+    SKU                String
+    SaleOrderDate      String?
+    SaleID             String?
+    Quantity           Int
+    UninvoicedQuantity Int?
+    SaleOrderQuantity  Int?    @default(0)
+
+    SaleOrderNumber String
+
+    @@id([SaleOrderNumber, ProductID, FulfillmentNumber])
+    @@index([SaleOrderNumber])
+}
+
+enum Warehouse {
+    PUKEKAWA
+    BOMBAY
+}
+
+enum TransactionStatus {
+    ORDER
+    DISPATCH
+    INVOICE
+}
+
+model SalesOrder {
+    id              Int               @id @default(autoincrement())
+    status          SalesOrderStatus
+    customerId      String
+    customerCode    String
+    customerName    String
+    customerRef     String
+    warehouse       Warehouse
+    deliveryAddress String
+    orderDate       DateTime
+    address         String?
+    requiredDate    DateTime
+    SalesOrderLines SalesOrderLines[]
+    packToOrder     Boolean?          @default(false)
+    // SalesOrderDispatch SalesOrderDispatch[]
+    createdAt       DateTime?         @default(now())
+
+    @@index([id])
+}
+
+model SalesOrderLines {
+    id String @id @default(cuid())
+
+    line        Int
+    productCode String
+
+    productDescription        String
+    quantity                  Int     @default(0)
+    shipped                   Int     @default(0)
+    invoiced                  Int     @default(0)
+    unitPrice                 Float   @default(0)
+    unit                      String
+    comments                  String
+    packToOrderBomId          String?
+    packToOrderBomProductCode String?
+
+    SalesOrder    SalesOrder      @relation(fields: [salesOrderId], references: [id])
+    salesOrderId  Int
+    DispatchLines DispatchLines[]
+    InvoiceLines  InvoiceLines[]
+
+    @@index([id])
+    @@index([salesOrderId])
+}
+
+enum DispatchCustomerType {
+    Default
+    Export
+    UPL
+}
+
+model DispatchLines {
+    id String @id @default(cuid())
+
+    line               Int
+    ship               Int     @default(0)
+    productCode        String
+    productDescription String
+    batchNumber        String?
+    batchLocation      String?
+    containerNumber    String?
+
+    sealNumber String?
+    weight     Int?
+
+    Dispatch         Dispatch        @relation(fields: [dispatchId], references: [id])
+    dispatchId       Int
+    SalesOrderLines  SalesOrderLines @relation(fields: [salesOrderLineId], references: [id])
+    salesOrderLineId String
+
+    InvoiceLines InvoiceLines[]
+
+    @@index([id])
+    @@index([dispatchId])
+    @@index([salesOrderLineId])
+}
+
+model Dispatch {
+    id Int @id @default(autoincrement())
+
+    shippingCompany   String
+    shippingCompanyId String
+    trackingNumber    String
+
+    address      String?
+    customerId   String
+    markedDone   Boolean?
+    customerCode String
+    customerName String
+    status       SalesOrderStatus @default(PLACED)
+
+    customerType DispatchCustomerType? @default(Default)
+
+    dispatchDate        DateTime
+    numberOfPackages    Int
+    shipmentWeight      Int
+    unleashed           String?
+    unleashedId         String?
+    unleashedCreatedOn  String?
+    unleashedCreatedBy  String?
+    unleashedModifiedOn String?
+    unleashedModifiedBy String?
+
+    statusUnleashed UnleashedStatus?
+
+    DispatchLines DispatchLines[]
+    CrateLines    CrateLines[]
+    createdAt     DateTime?       @default(now())
+
+    @@index([id])
+}
+
+model Invoice {
+    id Int @id @default(autoincrement())
+
+    MGInvoice String?
+    TGInvoice String?
+
+    customerId String
+
+    customerCode      String
+    customerName      String
+    billingAddress    String
+    invoiceDate       DateTime
+    dueDate           DateTime
+    paymentTerms      String
+    xeroId            String?
+    xeroInvoiceNumber String?
+
+    InvoiceLines InvoiceLines[]
+
+    @@index([id])
+}
+
+model InvoiceLines {
+    id String @id @default(cuid())
+
+    line Int
+
+    quantity              Float   @default(0)
+    ordered               Int     @default(0)
+    unitPrice             Float   @default(0)
+    unmatchedSalesOrderId String?
+    TGDivision            String?
+    accountCode           String?
+
+    productCode String?
+    TGCode      String?
+    MGCode      String?
+
+    productId   String?
+    productDesc String?
+
+    Invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+    invoiceId Int
+
+    DispatchLines  DispatchLines? @relation(fields: [dispatchLineId], references: [id])
+    dispatchLineId String?
+
+    SalesOrderLines  SalesOrderLines? @relation(fields: [salesOrderLineId], references: [id])
+    salesOrderLineId String?
+
+    @@index([id])
+    @@index([invoiceId])
+    @@index([dispatchLineId])
+    @@index([salesOrderLineId])
+}
+
+enum CrateSKU {
+    BFR
+    H47
+    H61
+    PALLET
+    FCCPALLET_P3
+    D47
+    T47
+}
+
+enum CrateStatus {
+    DELETED
+    DISPATCHED
+    ADJUSTMENT
+}
+
+model CrateLines {
+    id           String       @id @default(cuid())
+    line         Int?
+    sku          CrateSKU
+    ref          String
+    quantity     Int          @default(0)
+    customerId   String
+    customerCode String
+    customerName String
+    date         DateTime?
+    status       CrateStatus?
+
+    Dispatch   Dispatch? @relation(fields: [dispatchId], references: [id])
+    dispatchId Int?
+
+    @@index([id])
+    @@index([dispatchId])
+}
+
+model AdjustmentsLog {
+    id               String  @id @default(cuid())
+    adjustmentNumber Int
+    timeCreated      String?
+    timeCompleted    String?
+    attempts         Int?
+}
+
+model XeroCreds {
+    id           String   @default(cuid())
+    userId       String   @id
+    refreshToken String
+    tokenSet     Json?
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+}
+
+model UnleashedBatchs {
+    id        String   @id @unique
+    Guid      String
+    data      Json
+    createdAt DateTime @default(now())
+}
+
+model UnleashedStockOnHand {
+    id        String   @id @unique
+    productId String
+    data      Json
+    createdAt DateTime @default(now())
+}
+
+model UnleashedStockAdjustments {
+    Guid             String   @id @unique
+    adjustmentNumber String
+    data             Json
+    createdAt        DateTime @default(now())
+}
+
+model RpaLog {
+    id        Int      @id @default(autoincrement())
+    number    String   @unique
+    attempts  Int
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

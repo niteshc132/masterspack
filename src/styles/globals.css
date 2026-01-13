@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --ring: 0 0% 63.9%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 85.7% 97.3%;
+
+    --ring: 0 0% 14.9%;
+  }
+}
+
+/* * {
+  animation-duration: 0ms !important;
+  transition-duration: 0ms !important;
+} */
+@layer components {
+  .btn {
+    @apply rounded-lg px-4 py-2.5 text-lg font-bold focus:ring-2 focus:ring-blue-primary focus:ring-offset-1;
+  }
+  .btn-primary {
+    @apply btn bg-blue-primary text-white disabled:bg-blue-medium;
+  }
+  .btn-outline {
+    @apply btn border-2 border-blue-primary bg-white text-blue-primary disabled:border-blue-medium disabled:text-blue-medium;
+  }
+  .pill {
+    @apply w-fit rounded-2xl  bg-grey-light px-3 py-1 text-lg text-grey-medium;
+  }
+  .pill-dark {
+    @apply pill rounded-2xl bg-grey-dark text-grey-neutral;
+  }
+  .pill-pending {
+    @apply pill rounded-2xl bg-blue-light text-blue-dark;
+  }
+  .pill-submit {
+    @apply pill rounded-2xl bg-green-light text-green-dark;
+  }
+  .add-bins-table-head {
+    @apply bg-white px-3 py-2 text-lg font-bold text-blue-dark;
+  }
+  .add-bins-table-cell {
+    @apply flex h-[58px] w-[375px] items-center justify-between bg-white px-3 py-2 text-xl;
+  }
+  .add-bins-table-row {
+    @apply divide-x divide-grey-light;
+  }
+  .table-input {
+    @apply m-0 border-0 p-0 text-xl outline-none ring-0 focus:outline-none focus:ring-0;
+  }
+  td {
+    @apply px-3 py-2.5;
+  }
+}
+
+* {
+  @apply font-sourceSans;
+}
